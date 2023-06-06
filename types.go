@@ -1,77 +1,66 @@
 package caddyapi
 
 type Config struct {
-	Admin   AdminConfig   `json:"admin"`
-	Logging LoggingConfig `json:"logging"`
-	Storage StorageConfig `json:"storage"`
-	Apps    AppsConfig    `json:"apps"`
+	Apps Apps `json:"apps"`
 }
 
-type AdminConfig struct {
-	Disabled      bool           `json:"disabled"`
-	Listen        string         `json:"listen"`
-	EnforceOrigin bool           `json:"enforce_origin"`
-	Origins       []string       `json:"origins"`
-	Config        AdminAPIConfig `json:"config"`
-	Identity      IdentityConfig `json:"identity"`
-	Remote        RemoteConfig   `json:"remote"`
+type Apps struct {
+	HTTP HTTP `json:"http"`
 }
 
-type AdminAPIConfig struct {
-	Persist bool        `json:"persist"`
-	Load    interface{} `json:"load"` // This can be fulfilled by modules, so it's kept as interface{}
+type HTTP struct {
+	Servers map[string]Server `json:"servers"`
 }
 
-type IdentityConfig struct {
-	Identifiers []string      `json:"identifiers"`
-	Issuers     []interface{} `json:"issuers"` // This can be fulfilled by modules, so it's kept as interface{}
+type Server struct {
+	Listen []string `json:"listen"`
+	Routes []Route  `json:"routes"`
 }
 
-type RemoteConfig struct {
-	Listen        string          `json:"listen"`
-	AccessControl []AccessControl `json:"access_control"`
+type Route struct {
+	Handle   []Handle `json:"handle"`
+	Match    []Match  `json:"match"`
+	Terminal bool     `json:"terminal"`
 }
 
-type AccessControl struct {
-	PublicKeys  []string     `json:"public_keys"`
-	Permissions []Permission `json:"permissions"`
+type Match struct {
+	Host []string `json:"host,omitempty"`
+	Path []string `json:"path,omitempty"`
 }
 
-type Permission struct {
-	Paths   []string `json:"paths"`
-	Methods []string `json:"methods"`
+type Handle struct {
+	Handler       string         `json:"handler"`
+	Routes        []Route        `json:"routes,omitempty"`
+	Headers       *Headers       `json:"headers,omitempty"`
+	Upstreams     []Upstream     `json:"upstreams,omitempty"`
+	LoadBalancing *LoadBalancing `json:"load_balancing,omitempty"`
+	Transport     *Transport     `json:"transport,omitempty"`
+	StatusCode    int            `json:"status_code,omitempty"`
 }
 
-type LoggingConfig struct {
-	Sink SinkConfig           `json:"sink"`
-	Logs map[string]LogConfig `json:"logs"`
+type Headers struct {
+	Request *Request `json:"request,omitempty"`
 }
 
-type SinkConfig struct {
-	Writer interface{} `json:"writer"` // This can be fulfilled by modules, so it's kept as interface{}
+type Request struct {
+	Set map[string][]string `json:"set,omitempty"`
 }
 
-type LogConfig struct {
-	Writer   interface{} `json:"writer"`  // This can be fulfilled by modules, so it's kept as interface{}
-	Encoder  interface{} `json:"encoder"` // This can be fulfilled by modules, so it's kept as interface{}
-	Level    string      `json:"level"`
-	Sampling Sampling    `json:"sampling"`
-	Include  []string    `json:"include"`
-	Exclude  []string    `json:"exclude"`
+type Upstream struct {
+	Dial string `json:"dial"`
 }
 
-type Sampling struct {
-	Interval   int `json:"interval"`
-	First      int `json:"first"`
-	Thereafter int `json:"thereafter"`
+type LoadBalancing struct {
+	SelectionPolicy SelectionPolicy `json:"selection_policy"`
 }
 
-type StorageConfig struct {
-	// This can be fulfilled by modules, so it's kept as interface{}
-	StorageRaw interface{} `json:"storage"`
+type SelectionPolicy struct {
+	Policy string `json:"policy"`
 }
 
-type AppsConfig struct {
-	// This can be fulfilled by modules, so it's kept as interface{}
-	AppsRaw interface{} `json:"apps"`
+type Transport struct {
+	Protocol string `json:"protocol"`
+	TLS      *TLS   `json:"tls"`
 }
+
+type TLS struct{}
